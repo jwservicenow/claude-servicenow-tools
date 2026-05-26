@@ -1,10 +1,11 @@
 # claude-servicenow-tools
 
-Claude Code slash commands that ground ServiceNow answers in official documentation. Built for ITOM practitioners doing customer-facing work where every claim needs a real citation.
+Claude Code slash commands for ServiceNow ITOM practitioners — ServiceNow-specific tools (grounding answers in official documentation for customer-facing work) and general-purpose Claude Code utilities.
 
 ## What's included
 
 - **`/servicenow_rag`** — routes ServiceNow technical questions through the official GitHub markdown mirror (`ServiceNow/ServiceNowDocs`), supplements with Community for operational context, falls back through a trust hierarchy (KB → Community → third-party with explicit flags), and halts cleanly if nothing retrievable. No fabricated table names, no uncitable claims.
+- **`/newsession [optional runbook]`** — at session end, generates a ~500-token transition prompt you can paste into a fresh Claude Code session to resume work without replaying chat history. Optionally pass a runbook or planning file (bare filename or full path) so the next session is shaped by its content.
 
 ## Why use it
 
@@ -35,6 +36,8 @@ ServiceNow publishes a mirror of the same documentation as plain markdown on Git
 mkdir -p ~/.claude/commands
 curl -o ~/.claude/commands/servicenow_rag.md \
   https://raw.githubusercontent.com/jwservicenow/claude-servicenow-tools/main/servicenow_rag.md
+curl -o ~/.claude/commands/newsession.md \
+  https://raw.githubusercontent.com/jwservicenow/claude-servicenow-tools/main/newsession.md
 ```
 
 ## Use
@@ -43,15 +46,19 @@ curl -o ~/.claude/commands/servicenow_rag.md \
 /servicenow_rag what sys_property controls Discovery IP range exclusions?
 /servicenow_rag system requirements for Service Mapping
 /servicenow_rag difference between cmdb_rel_ci and svc_ci_assoc
+
+/newsession
+/newsession homelab_inventory.md
+/newsession ~/path/to/some_runbook.md
 ```
 
 ## Update later
 
-Re-run the same `curl` command. Overwrites your local copy with the latest version from this repo.
+Re-run the relevant `curl` command(s) above. Each overwrites your local copy with the latest version from this repo.
 
 ## Verify it's working
 
-Ask something too specific to fake from memory:
+Ask `/servicenow_rag` something too specific to fake from memory:
 
 ```
 /servicenow_rag what sys_property controls Discovery IP range exclusions?
@@ -61,9 +68,10 @@ If Claude fetches `llms.txt` before answering, the skill fired. If it answers im
 
 ## Constraints
 
-- **Claude Code only.** Claude Desktop's fetch policy blocks the raw GitHub URLs this skill needs.
-- **Default branch is `australia`** (current GA). For release-scoped work, mention the branch in your question (e.g., "on xanadu, what changed in...").
-- **Mirror has known bugs.** Some files miss `canonical_url` frontmatter — the skill constructs the docsite URL manually. Some internal `../reference/` links resolve to 404s — the skill ignores them and navigates via the bundle index instead.
+- **Claude Code only.** Both skills are slash commands, which are a Claude Code feature. (`/servicenow_rag` additionally requires Claude Code's raw-GitHub fetch behavior, which Claude Desktop's fetch policy blocks.)
+- **`/servicenow_rag` specifics:**
+  - Default branch is `australia` (current GA). For release-scoped work, mention the branch in your question (e.g., "on xanadu, what changed in...").
+  - The mirror has known bugs — some files miss `canonical_url` frontmatter (the skill constructs the docsite URL manually); some internal `../reference/` links resolve to 404s (the skill ignores them and navigates via the bundle index instead).
 
 ## License
 
